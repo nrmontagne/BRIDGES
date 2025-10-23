@@ -58,6 +58,7 @@ jobs:
         with:
           app-id: ${{ vars.APP_ID__PERSONAL_ENV_VAR }}
           private-key: ${{ secrets.PRIVATE_KEY__PERSONAL_ENV_VAR }}
+      - uses: actions/checkout@v5
       - name: Update Version
         id: update-version
         run: |
