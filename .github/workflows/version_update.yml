@@ -4,7 +4,7 @@
 # - An environment, named 'versioning', which:
 #     - Define protection rules to limits the deployement branches 
 
-name: version-update
+name: Version Update
 
 on:
   workflow_dispatch:
@@ -36,7 +36,7 @@ jobs:
           if [[ ${{github.ref}} =~ .*master$ ]]; then
             if [[ ${{ inputs.increment }} =~ 'Major' ]]; then
               ((major++))
-            elif [[ ${{ inputs.increment }} =~ 'Minor' ]]
+            elif [[ ${{ inputs.increment }} =~ 'Minor' ]]; then
               ((minor++))
             else
               echo ERROR: Failed to increment the version from the main branch. 
