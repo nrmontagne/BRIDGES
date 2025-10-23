@@ -1,0 +1,69 @@
+# This worklfow manages the versionning of this repository.
+# It relies on :
+# - Three Github Action Repository Variables : 'VERSION_MAJOR', 'VERSION_MINOR', 'VERSION_PATCH'
+# - An environment, named 'versioning', which:
+#     - Define protection rules to limits the deployement branches 
+
+name: version-update
+
+on:
+  workflow_dispatch:
+    inputs:
+      increment:
+        description: 'Type of version increment'
+        required : true
+        type: choice
+        options: 
+          - Major
+          - Minor
+          - Patch
+
+jobs:
+  increment_update:
+    runs-on: ubuntu-latest        # Specify the runner os
+    environment: versioning       # Specify the protection rules, variables and secrets
+    outputs:
+      pkg_version: ${{ steps.increment-version.outputs.PKG_VERSION }}
+    steps:
+      # Gets the Github Action Repository Variables and Increment the relevant Version Number 
+      - name: Increment Version
+        id: increment-version
+        shell: bash
+        run: |
+          major=${{vars.VERSION_MAJOR}}                                  # Get the current package major version
+          minor=${{vars.VERSION_MINOR}}                                  # Get the current package minor version
+          patch=${{vars.VERSION_PATCH}}                                  # Get the current package patch version
+          if [[ ${{github.ref}} =~ .*master$ ]]; then
+            if [[ ${{ inputs.increment }} =~ 'Major' ]]; then
+              ((major++))
+            elif [[ ${{ inputs.increment }} =~ 'Minor' ]]
+              ((minor++))
+            else
+              echo ERROR: Failed to increment the version from the main branch. 
+              exit 1                                                     # Terminate and Indicate error
+            fi
+          elif [[ ${{github.ref}} =~ .*release$ ]]; then
+            if [[ ${{ inputs.increment }} =~ 'Patch' ]]; then
+              ((patch++))
+            else
+              echo ERROR: Failed to increment the version from the release branch. 
+              exit 1                                                     # Terminate and Indicate error
+            fi
+          fi
+          version="${major}.${minor}.${patch}"
+          echo "PKG_VERSION=$version" >> $GITHUB_OUTPUT
+      - name : Generate a Github App token
+        uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ vars.APP_ID__PERSONAL_ENV_VAR }}
+          private-key: ${{ secrets.PRIVATE_KEY__PERSONAL_ENV_VAR }}
+      - name: Update Version
+        id: update-version
+        run: |
+          gh variable list
+          
+          gh variable set VERSION_MAJOR --body "1"
+        env:
+          GH_TOKEN: ${{ secrets.FULL_PAT }}
+          
