@@ -1,8 +1,11 @@
 # This worklfow manages the versionning of this repository.
-# It relies on :
+# It relies on the following elements :
 # - Three Github Action Repository Variables : 'VERSION_MAJOR', 'VERSION_MINOR', 'VERSION_PATCH'
+# - A GitHub App, here named 'personal-en-var' which has access to the Github Action Repository Variables.
 # - An environment, named 'versioning', which:
-#     - Define protection rules to limits the deployement branches 
+#     - Define protection rules to limits the deployement branches
+#     - Stores the GitHub App ID in an environment variable, here named 'APP_ID__PERSONAL_ENV_VAR'
+#     - Stores the GitHub App Private Key in an environment secret, here named 'PRIVATE_KEY__PERSONAL_ENV_VAR'
 
 name: Version Update
 
@@ -52,13 +55,16 @@ jobs:
           fi
           version="${major}.${minor}.${patch}"
           echo "PKG_VERSION=$version" >> $GITHUB_OUTPUT
+      # This step generates a temporary GH_TOKEN for the GitHub App.
       - name : Generate a Github App token
         uses: actions/create-github-app-token@v2
         id: create-app-token
         with:
           app-id: ${{ vars.APP_ID__PERSONAL_ENV_VAR }}
           private-key: ${{ secrets.PRIVATE_KEY__PERSONAL_ENV_VAR }}
+      # This step allows the GitHub App to understand which repo to work on.
       - uses: actions/checkout@v5
+      # This step updates the variable
       - name: Update Version
         id: update-version
         run: |
