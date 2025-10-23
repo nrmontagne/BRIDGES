@@ -54,7 +54,7 @@ jobs:
           echo "PKG_VERSION=$version" >> $GITHUB_OUTPUT
       - name : Generate a Github App token
         uses: actions/create-github-app-token@v2
-        id: app-token
+        id: create-app-token
         with:
           app-id: ${{ vars.APP_ID__PERSONAL_ENV_VAR }}
           private-key: ${{ secrets.PRIVATE_KEY__PERSONAL_ENV_VAR }}
@@ -62,8 +62,7 @@ jobs:
         id: update-version
         run: |
           gh variable list
-          
           gh variable set VERSION_MAJOR --body "1"
         env:
-          GH_TOKEN: ${{ secrets.FULL_PAT }}
+          GH_TOKEN: ${{ steps.create-app-token.outputs.token }}
           
